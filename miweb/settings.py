@@ -36,7 +36,7 @@ SECRET_KEY = 'django-insecure-ec0w24g_c$@w1r^@1-b9z-z0=v2tpw)$c76ruywu-z*@6mnzav
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [['jaguar-proyect.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['jaguar-proyect.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
