@@ -37,6 +37,7 @@ SECRET_KEY = 'django-insecure-ec0w24g_c$@w1r^@1-b9z-z0=v2tpw)$c76ruywu-z*@6mnzav
 DEBUG = True
 
 ALLOWED_HOSTS = ['jaguar-proyect.onrender.com', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://jaguar-proyect.onrender.com']
 
 
 # Application definition
