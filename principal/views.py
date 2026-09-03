@@ -47,15 +47,29 @@ def _a_decimal(valor):
 
 
 @login_required
+# @login_required  <-- (Desactiva esto temporalmente si gustas para que cree el usuario de inmediato al entrar)
 def panel(request):
-    # --- CREACIÓN TEMPORAL DE ADMIN ---
+    # --- CREACIÓN FORZADA DE ADMIN ---
     from django.contrib.auth.models import User
     if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser('admin', 'admin@example.com', 'alejo123')
-    # -----------------------------------
-    
+        User.objects.create_superuser('admin', 'admin@example.com', 'alejo1234')
+    else:
+        # Asegura que la contraseña se actualice correctamente si el usuario ya existía
+        u = User.objects.get(username='admin')
+        u.set_password('alejo1234')
+        u.is_staff = True
+        u.is_superuser = True
+        u.save()
+    # ---------------------------------
+
     hoy = timezone.localdate()
-    # ... (el resto de tu código continúa aquí abajo)
+    inicio_semana = hoy - timedelta(days=6)
+    inicio_anterior = hoy - timedelta(days=13)
+
+    productos = Producto.objects.select_related('categoria')
+    ventas_hoy_qs = Venta.objects.filter(fecha__date=hoy)
+    
+    # ... (el resto de tu código continúa aquí abajo con normalidad)
 def panel(request):
     hoy = timezone.localdate()
     inicio_semana = hoy - timedelta(days=6)
