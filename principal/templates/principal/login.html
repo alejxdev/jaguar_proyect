@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión — Jaguar</title>
+    <link rel="icon" type="image/png" href="{% static 'principal/jaguar.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'principal/estilos.css' %}?v=16">
+</head>
+<body class="login-body">
+    <div class="login-escena">
+
+        <!-- Ventana de login -->
+        <main class="tarjeta-login">
+            {% if messages %}
+                {% for mensaje in messages %}
+                    <div class="alerta {{ mensaje.tags }}">{{ mensaje }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <img src="{% static 'principal/jaguar.png' %}" alt="Jaguar" class="login-logo">
+            <p class="login-subtexto">Ingresa tus credenciales para continuar</p>
+
+            <form method="post" class="login-form">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alerta error"><i class="bi bi-x-circle"></i> Usuario o contraseña incorrectos.</div>
+                {% endif %}
+
+                <label class="campo-grupo">Usuario
+                    {{ form.username }}
+                </label>
+
+                <label class="campo-grupo">Contraseña
+                    <span class="campo-password">
+                        {{ form.password }}
+                        <button type="button" id="toggle-password" class="toggle-password"
+                                title="Mostrar contraseña" aria-label="Mostrar contraseña">
+                            <i class="bi bi-eye" id="icono-password"></i>
+                        </button>
+                    </span>
+                </label>
+
+                <label class="checkbox-recuerda">
+                    <input type="checkbox" id="recordar-login" checked>
+                    <span><i class="bi bi-bookmark-check"></i> Recuerda mi usuario y contraseña</span>
+                </label>
+
+                <button type="submit" class="btn btn-acento btn-bloque">
+                    <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+                </button>
+            </form>
+
+            <button type="button" id="abrir-soporte" class="enlace-soporte">
+                ¿No puedes acceder? Contacta con soporte
+            </button>
+        </main>
+
+        <!-- Panel de soporte técnico -->
+        <aside id="panel-soporte" class="panel-soporte">
+            <button type="button" id="cerrar-soporte" class="cerrar-panel" title="Cerrar" aria-label="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+            <h2 class="soporte-titulo"><i class="bi bi-headset"></i> Soporte Técnico</h2>
+            <p class="soporte-subtexto">Si no puedes acceder, contáctanos:</p>
+
+            <div class="tarjeta-contacto">
+                <span class="contacto-icono"><i class="bi bi-envelope"></i></span>
+                <span class="contacto-datos">
+                    <small>Correo</small>
+                    <a href="mailto:soporte@jaguar.com">soporte@jaguar.com</a>
+                </span>
+            </div>
+
+            <div class="tarjeta-contacto">
+                <span class="contacto-icono"><i class="bi bi-telephone"></i></span>
+                <span class="contacto-datos">
+                    <small>Teléfono</small>
+                    <a href="tel:+000000000000">+00 000 000 0000</a>
+                </span>
+            </div>
+
+            <div class="tarjeta-contacto">
+                <span class="contacto-icono"><i class="bi bi-clock"></i></span>
+                <span class="contacto-datos">
+                    <small>Horario</small>
+                    <span>Lunes a viernes, 8:00 – 18:00</span>
+                </span>
+            </div>
+
+            <a href="mailto:soporte@jaguar.com?subject=Ayuda%20para%20acceder%20a%20Jaguar" class="btn btn-acento btn-bloque cta-soporte">
+                <i class="bi bi-chat-dots"></i> Enviar un mensaje
+            </a>
+        </aside>
+    </div>
+
+    <footer class="pie-login">Sistema de ventas e inventarios</footer>
+
+    <script>
+        const campo = document.getElementById('id_password');
+        const toggle = document.getElementById('toggle-password');
+        const icono = document.getElementById('icono-password');
+
+        toggle.addEventListener('click', () => {
+            const visible = campo.type === 'text';
+            campo.type = visible ? 'password' : 'text';
+            icono.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+            toggle.title = visible ? 'Mostrar contraseña' : 'Ocultar contraseña';
+        });
+
+        const soporte = document.getElementById('panel-soporte');
+
+        document.getElementById('abrir-soporte').addEventListener('click', () => {
+            if (window.innerWidth <= 960) {
+                document.body.classList.add('soporte-abierto');
+            } else {
+                soporte.classList.remove('destacar');
+                void soporte.offsetWidth;
+                soporte.classList.add('destacar');
+            }
+        });
+
+        document.getElementById('cerrar-soporte').addEventListener('click', () => {
+            document.body.classList.remove('soporte-abierto');
+        });
+
+        // ===== Recuerda mis datos (localStorage del navegador) =====
+        const recordar = document.getElementById('recordar-login');
+        const campoUser = document.getElementById('id_username');
+        const campoPass = document.getElementById('id_password');
+
+        const CLAVE = 'jaguar_credenciales';
+        const guardado = JSON.parse(localStorage.getItem(CLAVE) || 'null');
+
+        if (guardado) {
+            campoUser.value = guardado.usuario || '';
+            campoPass.value = guardado.contraseña || '';
+            recordar.checked = true;
+        }
+
+        document.querySelector('.login-form').addEventListener('submit', () => {
+            if (recordar.checked) {
+                localStorage.setItem(CLAVE, JSON.stringify({
+                    usuario: campoUser.value,
+                    contraseña: campoPass.value,
+                }));
+            } else {
+                localStorage.removeItem(CLAVE);
+            }
+        });
+    </script>
+</body>
+</html>

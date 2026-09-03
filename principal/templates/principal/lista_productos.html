@@ -1,0 +1,64 @@
+{% extends 'principal/base.html' %}
+{% block titulo %}{{ titulo }} — Jaguar{% endblock %}
+{% block nav_productos %}activo{% endblock %}
+
+{% block contenido %}
+<h1><i class="bi bi-boxes"></i> Productos</h1>
+
+<form method="get" class="filtros">
+    <input type="text" name="q" value="{{ consulta }}" placeholder="Buscar por código o nombre...">
+    <select name="categoria">
+        <option value="">Todas las categorías</option>
+        {% for c in categorias %}
+        <option value="{{ c.id }}" {% if categoria_sel == c.id|stringformat:'s' %}selected{% endif %}>{{ c.nombre }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn"><i class="bi bi-funnel"></i> Filtrar</button>
+    {% if es_dueno %}
+    <a href="{% url 'crear_producto' %}" class="btn btn-primario"><i class="bi bi-plus-lg"></i> Nuevo producto</a>
+    {% endif %}
+</form>
+
+<table>
+    <tr>
+        <th></th><th>Código</th><th>Nombre</th><th>Categoría</th>
+        <th>P. compra</th><th>P. venta</th><th>Stock</th>
+        {% if es_dueno %}<th>Acciones</th>{% endif %}
+    </tr>
+    {% for p in productos %}
+    <tr>
+        <td class="celda-imagen">
+            {% if p.imagen %}
+                <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="miniatura-producto">
+            {% else %}
+                <span class="miniatura-vacia"><i class="bi bi-image"></i></span>
+            {% endif %}
+        </td>
+        <td>{{ p.codigo }}</td>
+        <td>{{ p.nombre }}</td>
+        <td>{{ p.categoria|default:'—' }}</td>
+        <td>${{ p.precio_compra|floatformat:2 }}</td>
+        <td class="verde">${{ p.precio_venta|floatformat:2 }}</td>
+        <td>
+            {% if p.bajo_stock %}
+                <span class="badge-rojo">{{ p.stock }} <i class="bi bi-exclamation-triangle-fill"></i></span>
+            {% else %}
+                {{ p.stock }}
+            {% endif %}
+        </td>
+        {% if es_dueno %}
+        <td class="acciones">
+            <a href="{% url 'editar_producto' p.id %}" class="btn btn-mini"><i class="bi bi-pencil"></i> Editar</a>
+            <form method="post" action="{% url 'eliminar_producto' p.id %}" class="inline"
+                  onsubmit="return confirm('¿Eliminar "{{ p.nombre }}"?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-mini btn-peligro"><i class="bi bi-trash"></i></button>
+            </form>
+        </td>
+        {% endif %}
+    </tr>
+    {% empty %}
+    <tr><td colspan="{% if es_dueno %}8{% else %}7{% endif %}" class="vacio">No hay productos registrados.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cierre de Caja #{{ caja.id }}</title>
+    <style>
+        @page { size: A4; margin: 10mm 12mm 12mm; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
+            color: #1f2937; font-size: 10.5px; line-height: 1.45;
+        }
+
+        .banda-sup { background: #0f766e; height: 6px; margin: 0 0 14px; border-radius: 3px; }
+
+        /* Encabezado */
+        .cabecera { display: flex; justify-content: space-between; align-items: flex-start; }
+        .emisor .razon {
+            font-size: 22px; font-weight: 800; color: #0f766e;
+            text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1;
+        }
+        .emisor .fila-dato { font-size: 10.5px; color: #374151; margin-top: 3px; }
+        .emisor .ruc-rec {
+            border: 1.5px solid #1f2937; border-radius: 6px; padding: 5px 16px;
+            text-align: center; margin-top: 10px; display: inline-block;
+        }
+        .emisor .ruc-rec .k { font-size: 9px; letter-spacing: 2px; color: #6b7280; }
+        .emisor .ruc-rec .v { font-size: 17px; font-weight: 800; letter-spacing: 2px; }
+
+        .bloque-titulo { text-align: right; }
+        .titulo-doc { font-size: 28px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; line-height: 1; }
+        .bajo-titulo { margin-top: 4px; font-size: 10px; color: #6b7280; letter-spacing: 1px; }
+        .numero-doc {
+            margin-top: 12px; display: inline-block;
+            border: 1px dashed #9ca3af; border-radius: 5px; padding: 6px 14px; text-align: center;
+        }
+        .numero-doc .k { font-size: 9px; letter-spacing: 1px; color: #6b7280; text-transform: uppercase; }
+        .numero-doc .v { font-size: 14px; font-weight: 800; letter-spacing: 0.5px; }
+
+        /* Datos de sesión */
+        .datos-fila { display: flex; gap: 10px; margin: 16px 0; }
+        .celda-dato {
+            flex: 1; border: 1px solid #e5e7eb; border-radius: 6px;
+            padding: 9px 12px; background: #fafafa;
+        }
+        .celda-dato .k { font-size: 9px; letter-spacing: 1px; color: #6b7280; text-transform: uppercase; margin-bottom: 3px; }
+        .celda-dato .v { font-size: 11.5px; font-weight: 600; color: #111827; }
+
+        /* Secciones */
+        .seccion-titulo {
+            font-size: 11px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1.5px; color: #0f766e;
+            border-bottom: 2px solid #0f766e; padding-bottom: 4px; margin: 18px 0 10px;
+        }
+
+        /* Cuadre / resumen */
+        .rejilla { display: flex; gap: 10px; }
+        .celda-cuadre {
+            flex: 1; border: 1px solid #e5e7eb; border-radius: 6px;
+            padding: 10px 12px; background: #fafafa; text-align: center;
+        }
+        .celda-cuadre .rotulo { font-size: 9px; letter-spacing: 1px; color: #6b7280; text-transform: uppercase; }
+        .celda-cuadre .valor { font-size: 16px; font-weight: 800; margin-top: 3px; }
+        .celda-cuadre .valor.ok { color: #15803d; }
+        .celda-cuadre .valor.falta { color: #b91c1c; }
+        .celda-cuadre .valor.destacado { color: #0f766e; }
+
+        table.items { width: 100%; border-collapse: collapse; }
+        table.items thead th {
+            background: #0f766e; color: #fff; text-align: left;
+            font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.8px;
+            padding: 8px 10px;
+        }
+        table.items thead th:first-child { border-top-left-radius: 5px; }
+        table.items thead th:last-child { border-top-right-radius: 5px; }
+        table.items tbody td { padding: 7px 10px; border-bottom: 1px solid #ececec; font-size: 10.5px; }
+        table.items tbody tr:nth-child(even) { background: #f8faf9; }
+        table.items tbody tr:last-child td { border-bottom: none; }
+        .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+        .firmas { margin-top: 30px; display: flex; justify-content: space-between; }
+        .firmas .f { width: 40%; text-align: center; }
+        .firmas .linea { border-top: 1px solid #9ca3af; height: 26px; }
+        .firmas .t { font-size: 10px; color: #374151; font-weight: 600; }
+        .pie-legal {
+            margin-top: 22px; font-size: 8.5px; color: #9ca3af;
+            border-top: 1px solid #e5e7eb; padding-top: 8px; text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="banda-sup"></div>
+
+    <div class="cabecera">
+        <div class="emisor">
+            <div class="razon">{{ config.nombre_empresa }}</div>
+            {% if config.direccion %}<div class="fila-dato">{{ config.direccion }}</div>{% endif %}
+            <div class="fila-dato">
+                {% if config.telefono %}Telf: {{ config.telefono }}{% endif %}
+                {% if config.correo %}{% if config.telefono %} &nbsp;•&nbsp; {% endif %}{{ config.correo }}{% endif %}
+            </div>
+            {% if config.ruc %}
+            <div class="ruc-rec"><div class="k">R.U.C.</div><div class="v">{{ config.ruc }}</div></div>
+            {% endif %}
+        </div>
+        <div class="bloque-titulo">
+            <div class="titulo-doc">Cierre de Caja</div>
+            <div class="bajo-titulo">Reporte de cierre</div>
+            <div class="numero-doc"><div class="k">Caja Nº</div><div class="v">{{ caja.id }}</div></div>
+        </div>
+    </div>
+
+    <div class="datos-fila">
+        <div class="celda-dato">
+            <div class="k">Apertura</div>
+            <div class="v">{{ caja.fecha_apertura|date:'d/m/Y H:i' }}</div>
+        </div>
+        <div class="celda-dato">
+            <div class="k">Cierre</div>
+            <div class="v">{{ caja.fecha_cierre|date:'d/m/Y H:i' }}</div>
+        </div>
+        <div class="celda-dato">
+            <div class="k">Encargado</div>
+            <div class="v">{{ caja.usuario_abre.username|default:'—' }}</div>
+        </div>
+    </div>
+
+    <div class="seccion-titulo">Cuadre de caja</div>
+    <div class="rejilla">
+        <div class="celda-cuadre"><div class="rotulo">Monto apertura</div><div class="valor">${{ caja.monto_apertura|floatformat:2 }}</div></div>
+        <div class="celda-cuadre"><div class="rotulo">Esperado</div><div class="valor destacado">${{ caja.monto_esperado|floatformat:2 }}</div></div>
+        <div class="celda-cuadre"><div class="rotulo">Contado físico</div><div class="valor">${{ caja.monto_contado|floatformat:2 }}</div></div>
+        <div class="celda-cuadre">
+            <div class="rotulo">Diferencia</div>
+            {% with d=caja.diferencia %}
+                {% if d == 0 %}<div class="valor ok">$0.00</div>
+                {% elif d > 0 %}<div class="valor ok">+${{ d|floatformat:2 }}</div>
+                {% else %}<div class="valor falta">-${{ d|floatformat:2 }}</div>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    {% if conteo %}
+    <div class="seccion-titulo">Conteo de billetes y monedas</div>
+    <table class="items">
+        <thead>
+            <tr>
+                <th>Denominación</th>
+                <th class="num" style="width: 16%;">Cantidad</th>
+                <th class="num" style="width: 18%;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for etiqueta, valor, cantidad, subtotal_conteo in conteo.renglones %}
+            <tr>
+                <td>{{ etiqueta }} ({{ valor|floatformat:2 }})</td>
+                <td class="num">{{ cantidad }}</td>
+                <td class="num">${{ subtotal_conteo|floatformat:2 }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <div class="seccion-titulo">Resumen de ventas ({{ resumen.numero }})</div>
+    <div class="rejilla">
+        <div class="celda-cuadre"><div class="rotulo">Ventas en efectivo</div><div class="valor">${{ resumen.efectivo|floatformat:2 }}</div></div>
+        <div class="celda-cuadre"><div class="rotulo">Ventas transferidas</div><div class="valor">${{ resumen.transferencia|floatformat:2 }}</div></div>
+        <div class="celda-cuadre"><div class="rotulo">Total vendido</div><div class="valor destacado">${{ resumen.total|floatformat:2 }}</div></div>
+        <div class="celda-cuadre"><div class="rotulo">Nº de ventas</div><div class="valor">{{ resumen.numero }}</div></div>
+    </div>
+
+    {% if ventas %}
+    <div class="seccion-titulo">Detalle de ventas</div>
+    <table class="items">
+        <thead>
+            <tr>
+                <th style="width: 8%;">#</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th style="width: 18%;">Pago</th>
+                <th class="num" style="width: 14%;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for v in ventas %}
+            <tr>
+                <td>{{ v.id }}</td>
+                <td>{{ v.fecha|date:'d/m/Y H:i' }}</td>
+                <td>{{ v.cliente }}</td>
+                <td>{{ v.get_metodo_pago_display }}</td>
+                <td class="num">${{ v.total|floatformat:2 }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <div class="firmas">
+        <div class="f"><div class="linea"></div><div class="t">Encargado de caja</div></div>
+        <div class="f"><div class="linea"></div><div class="t">Revisión</div></div>
+    </div>
+
+    <div class="pie-legal">Documento generado por el sistema de ventas. Representación impresa del cierre de caja.</div>
+
+</body>
+</html>

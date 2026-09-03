@@ -1,0 +1,159 @@
+{% extends 'principal/base.html' %}
+{% block titulo %}Caja — Jaguar{% endblock %}
+{% block nav_caja %}activo{% endblock %}
+
+{% block contenido %}
+<h1><i class="bi bi-cash-stack"></i> Caja</h1>
+
+{% if sesion %}
+<p class="subtexto">
+    Abierta el <strong>{{ sesion.fecha_apertura|date:'d/m/Y H:i' }}</strong>
+    {% if sesion.usuario_abre %}por {{ sesion.usuario_abre.username }}{% endif %}
+    · Monto inicial: ${{ sesion.monto_apertura|floatformat:2 }}
+</p>
+
+<div class="tarjetas tarjetas-seis">
+    <div class="stat">
+        <div class="stat-icono"><i class="bi bi-cash-coin"></i></div>
+        <span class="stat-num">${{ resumen.efectivo|floatformat:2 }}</span>
+        <span class="stat-titulo">Ventas en efectivo</span>
+    </div>
+    <div class="stat">
+        <div class="stat-icono"><i class="bi bi-arrow-left-right"></i></div>
+        <span class="stat-num">${{ resumen.transferencia|floatformat:2 }}</span>
+        <span class="stat-titulo">Ventas transferidas</span>
+    </div>
+    <div class="stat">
+        <div class="stat-icono"><i class="bi bi-receipt"></i></div>
+        <span class="stat-num">${{ resumen.total|floatformat:2 }}</span>
+        <span class="stat-titulo">Total vendido ({{ resumen.numero }})</span>
+    </div>
+    <div class="stat">
+        <div class="stat-icono"><i class="bi bi-safe"></i></div>
+        <span class="stat-num verde">${{ resumen.esperado|floatformat:2 }}</span>
+        <span class="stat-titulo">Esperado en caja</span>
+    </div>
+</div>
+
+<section class="panel-seccion">
+    <h2><i class="bi bi-lock"></i> Cerrar caja</h2>
+    <p class="pista">Cuenta el efectivo físico e ingresa la cantidad de cada billete
+        y moneda. El sistema suma el total automáticamente. Lo esperado es apertura
+        (${{ sesion.monto_apertura|floatformat:2 }}) + ventas en efectivo
+        (${{ resumen.efectivo|floatformat:2 }}) = <strong>${{ resumen.esperado|floatformat:2 }}</strong>.
+        Las transferencias no van en la caja física.</p>
+    <form method="post" class="formulario">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="cerrar">
+
+        <div class="campo-grupo-conteo">
+            <span class="conteo-rotulo">Billetes</span>
+            <div class="conteo-fila" data-conteo>
+                <label>100 <input type="number" name="b_100" data-valor="100" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>50 <input type="number" name="b_50" data-valor="50" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>20 <input type="number" name="b_20" data-valor="20" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>10 <input type="number" name="b_10" data-valor="10" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>5 <input type="number" name="b_5" data-valor="5" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>1 <input type="number" name="b_1" data-valor="1" min="0" step="1" inputmode="numeric" value="0"></label>
+            </div>
+        </div>
+
+        <div class="campo-grupo-conteo">
+            <span class="conteo-rotulo">Monedas</span>
+            <div class="conteo-fila" data-conteo>
+                <label>1 <input type="number" name="m_1" data-valor="1" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>0,50 <input type="number" name="m_050" data-valor="0.50" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>0,25 <input type="number" name="m_025" data-valor="0.25" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>0,10 <input type="number" name="m_010" data-valor="0.10" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>0,05 <input type="number" name="m_005" data-valor="0.05" min="0" step="1" inputmode="numeric" value="0"></label>
+                <label>0,01 <input type="number" name="m_001" data-valor="0.01" min="0" step="1" inputmode="numeric" value="0"></label>
+            </div>
+        </div>
+
+        <div class="campos">
+            <label>Total contado
+                <input type="text" readonly id="total-conteo" placeholder="$0.00">
+            </label>
+            <label>Diferencia
+                <input type="text" readonly id="dif-conteo" placeholder="—" tabindex="-1">
+                <small class="pista" id="dif-datos" data-esperado="{{ resumen.esperado }}"></small>
+            </label>
+        </div>
+        <div class="acciones-form">
+            <button type="submit" class="btn btn-peligro"><i class="bi bi-lock"></i> Cerrar caja</button>
+        </div>
+    </form>
+</section>
+
+{% else %}
+<section class="panel-seccion">
+    <h2><i class="bi bi-unlock"></i> Abrir caja</h2>
+    <p class="pista">No hay ninguna caja abierta. Ingresa el efectivo con el que
+        inicias el día para poder cuadrar al cierre.</p>
+    <form method="post" class="formulario">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="abrir">
+        <div class="campos">
+            <label>Monto inicial
+                <input type="number" name="monto_apertura" min="0" step="0.01"
+                       inputmode="decimal" value="0.00" required>
+            </label>
+        </div>
+        <div class="acciones-form">
+            <button type="submit" class="btn btn-primario"><i class="bi bi-unlock"></i> Abrir caja</button>
+        </div>
+    </form>
+</section>
+{% endif %}
+
+{% if historial %}
+<h2>Sesiones anteriores</h2>
+<table>
+    <tr><th>Apertura</th><th>Cierre</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th></th></tr>
+    {% for c in historial %}
+    <tr>
+        <td>{{ c.fecha_apertura|date:'d/m/Y H:i' }}</td>
+        <td>{{ c.fecha_cierre|date:'d/m/Y H:i' }}</td>
+        <td>${{ c.monto_esperado|floatformat:2 }}</td>
+        <td>${{ c.monto_contado|floatformat:2 }}</td>
+        <td>{% with d=c.diferencia %}
+                {% if d == 0 %}<span class="verde">$0.00</span>
+                {% elif d > 0 %}<span class="verde">+${{ d|floatformat:2 }}</span>
+                {% else %}<span class="rojo">-${{ d|floatformat:2 }}</span>
+                {% endif %}
+            {% endwith %}</td>
+        <td><a href="{% url 'cierre_caja_pdf' c.pk %}" class="btn btn-mini" title="Descargar PDF del cierre"><i class="bi bi-file-earmark-pdf"></i> PDF</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+    const totalEl = document.getElementById('total-conteo');
+    const difEl = document.getElementById('dif-conteo');
+    const datosEl = document.getElementById('dif-datos');
+    if (!totalEl || !difEl || !datosEl) return;
+    const esperado = parseFloat(datosEl.dataset.esperado) || 0;
+    const campos = [...document.querySelectorAll('[data-conteo] input')];
+
+    const calcular = () => {
+        let total = 0;
+        campos.forEach((inp) => {
+            const n = parseInt(inp.value, 10);
+            if (!isNaN(n) && n > 0) total += n * parseFloat(inp.dataset.valor);
+        });
+        total = Math.round(total * 100) / 100;
+        totalEl.value = '$' + total.toFixed(2);
+        const dif = Math.round((total - esperado) * 100) / 100;
+        difEl.value = dif === 0 ? '$0.00'
+            : dif > 0 ? '+$' + dif.toFixed(2) : '-$' + Math.abs(dif).toFixed(2);
+    };
+
+    campos.forEach((inp) => inp.addEventListener('input', calcular));
+    calcular();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'principal/base.html' %}
+{% block titulo %}Panel — Jaguar{% endblock %}
+{% block nav_panel %}activo{% endblock %}
+
+{% block contenido %}
+<div class="panel-cabecera">
+    <div>
+        <h1><i class="bi bi-speedometer2"></i> Panel de control</h1>
+        <p class="subtexto">Resumen general al {{ hoy|date:'d/m/Y' }}</p>
+    </div>
+    <div class="panel-acciones">
+        <a href="{% url 'crear_producto' %}" class="btn"><i class="bi bi-plus-lg"></i> Producto</a>
+        <a href="{% url 'nueva_venta' %}" class="btn btn-primario"><i class="bi bi-cart-plus"></i> Nueva venta</a>
+    </div>
+</div>
+
+<div class="tarjetas tarjetas-seis">
+    <div class="stat">
+        <span class="stat-icono"><i class="bi bi-boxes"></i></span>
+        <span class="stat-num">{{ total_productos }}</span>
+        <span class="stat-titulo">Productos · {{ total_categorias }} categorías</span>
+    </div>
+    <div class="stat">
+        <span class="stat-icono"><i class="bi bi-wallet2"></i></span>
+        <span class="stat-num">${{ valor_inventario|floatformat:2 }}</span>
+        <span class="stat-titulo">Inventario a costo · venta ${{ valor_venta_inventario|floatformat:0 }}</span>
+    </div>
+    <div class="stat">
+        <span class="stat-icono"><i class="bi bi-layers"></i></span>
+        <span class="stat-num">{{ unidades_totales }}</span>
+        <span class="stat-titulo">Unidades en stock</span>
+    </div>
+    <div class="stat">
+        <span class="stat-icono"><i class="bi bi-cart-check"></i></span>
+        <span class="stat-num">${{ ventas_hoy_total|floatformat:2 }}</span>
+        <span class="stat-titulo">Ventas hoy ({{ ventas_hoy_cantidad }})</span>
+    </div>
+    <div class="stat">
+        <span class="stat-icono"><i class="bi bi-graph-up-arrow"></i></span>
+        <span class="stat-num">${{ ganancia_hoy|floatformat:2 }}</span>
+        <span class="stat-titulo">Ganancia hoy · ticket ${{ ticket_promedio|floatformat:0 }}</span>
+    </div>
+    <div class="stat">
+        <span class="stat-icono">
+            <i class="bi {% if num_agotados %}bi-exclamation-octagon{% else %}bi-shield-check{% endif %}"></i>
+        </span>
+        <span class="stat-num">{{ bajo_stock|length }}</span>
+        <span class="stat-titulo">{% if num_agotados %}{{ num_agotados }} agotado(s) — requiere atención{% else %}Alertas de stock{% endif %}</span>
+    </div>
+</div>
+
+<section class="panel-seccion">
+    <div class="seccion-cabecera">
+        <h2><i class="bi bi-bar-chart-line"></i> Ventas de los últimos 7 días</h2>
+        <span class="chip-resumen">
+            Total: <strong>${{ total_semana|floatformat:2 }}</strong>
+            {% if variacion is not None %}
+                {% if variacion >= 0 %}
+                    <span class="variacion"><i class="bi bi-arrow-up-right"></i> {{ variacion }}%</span>
+                {% else %}
+                    <span class="variacion"><i class="bi bi-arrow-down-right"></i> {{ variacion }}%</span>
+                {% endif %}
+                vs. semana anterior
+            {% endif %}
+        </span>
+    </div>
+    <div class="grafico-linea">
+        <svg viewBox="0 0 560 150" role="img" aria-label="Ventas de los últimos 7 días">
+            <defs>
+                <linearGradient id="degradado-area" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ededed" stop-opacity="0.16"/>
+                    <stop offset="100%" stop-color="#ededed" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+            <line class="linea-guia" x1="20" y1="41" x2="540" y2="41"/>
+            <line class="linea-guia" x1="20" y1="76" x2="540" y2="76"/>
+            <line class="linea-guia" x1="20" y1="111" x2="540" y2="111"/>
+            <polygon points="{{ area_puntos }}" fill="url(#degradado-area)"/>
+            <polyline class="linea-ventas" points="{{ linea_puntos }}"/>
+            {% for d in serie_dias %}
+            <circle cx="{{ d.x }}" cy="{{ d.y }}" r="{% if d.es_hoy %}4.5{% else %}3{% endif %}"
+                    class="{% if d.es_hoy %}punto-hoy{% endif %}">
+                <title>{{ d.etiqueta }}: {{ d.numero }} venta(s) — ${{ d.total|floatformat:2 }}</title>
+            </circle>
+            {% endfor %}
+        </svg>
+        <div class="etiquetas-linea">
+            {% for d in serie_dias %}
+            <span class="{% if d.es_hoy %}hoy{% endif %}">{{ d.etiqueta }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<div class="dos-columnas">
+    <section class="panel-seccion">
+        <div class="seccion-cabecera">
+            <h2><i class="bi bi-exclamation-triangle"></i> Inventario que requiere atención</h2>
+            <a href="{% url 'lista_productos' %}" class="btn btn-mini">Ver todos</a>
+        </div>
+        {% if bajo_stock %}
+        <table>
+            <tr><th>Código</th><th>Producto</th><th>Stock</th><th>Mínimo</th></tr>
+            {% for p in bajo_stock %}
+            <tr>
+                <td>{{ p.codigo }}</td>
+                <td><a href="{% url 'editar_producto' p.id %}">{{ p.nombre }}</a></td>
+                <td>
+                    {% if p.stock == 0 %}
+                        <span class="badge-rojo">Agotado</span>
+                    {% else %}
+                        <span class="badge-neutro">{{ p.stock }} u.</span>
+                    {% endif %}
+                </td>
+                <td>{{ p.stock_minimo }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p class="vacio">Todo el inventario está por encima del mínimo <i class="bi bi-check2"></i></p>
+        {% endif %}
+    </section>
+
+    <section class="panel-seccion">
+        <div class="seccion-cabecera">
+            <h2><i class="bi bi-fire"></i> Lo más vendido</h2>
+        </div>
+        {% if top_vendidos %}
+        <ol class="lista-top">
+            {% for item in top_vendidos %}
+            <li>
+                <span class="rank">{{ forloop.counter }}</span>
+                <div class="top-info">
+                    <span class="top-nombre">{{ item.producto__nombre }}</span>
+                    <div class="barra-top"><div style="width: {{ item.porcentaje }}%;"></div></div>
+                </div>
+                <span class="top-cifras"><strong>{{ item.unidades }}</strong> u. · ${{ item.ingresos|floatformat:0 }}</span>
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p class="vacio">Aún no hay ventas registradas.</p>
+        {% endif %}
+    </section>
+</div>
+
+<section class="panel-seccion">
+    <div class="seccion-cabecera">
+        <h2><i class="bi bi-receipt"></i> Últimas ventas</h2>
+        <a href="{% url 'historial_ventas' %}" class="btn btn-mini">Ver historial</a>
+    </div>
+    {% if ultimas_ventas %}
+    <table>
+        <tr><th>Venta</th><th>Cliente</th><th>Artículos</th><th>Fecha</th><th>Total</th></tr>
+        {% for v in ultimas_ventas %}
+        <tr>
+            <td><a href="{% url 'detalle_venta' v.id %}">#{{ v.id }}</a></td>
+            <td>{{ v.cliente }}</td>
+            <td>{{ v.articulos }}</td>
+            <td>{{ v.fecha|date:'d/m/Y H:i' }}</td>
+            <td class="verde">${{ v.total|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p class="vacio">Registra tu primera venta en <i class="bi bi-cart-plus"></i> Nueva venta.</p>
+    {% endif %}
+</section>
+{% endblock %}

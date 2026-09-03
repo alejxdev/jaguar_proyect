@@ -1,0 +1,38 @@
+{% extends 'principal/base.html' %}
+{% block titulo %}Venta #{{ venta.id }} — Jaguar{% endblock %}
+{% block nav_historial %}activo{% endblock %}
+
+{% block contenido %}
+<h1><i class="bi bi-receipt"></i> Venta #{{ venta.id }}</h1>
+<p class="subtexto">
+    Cliente: <strong>{{ venta.cliente }}</strong> ·
+    Fecha: {{ venta.fecha|date:'d/m/Y H:i' }} ·
+    Pago: <strong>{{ venta.get_metodo_pago_display }}</strong>
+    {% if venta.monto_efectivo %}· Efectivo ${{ venta.monto_efectivo|floatformat:2 }}{% endif %}
+    {% if venta.monto_transferencia %}· Transferencia ${{ venta.monto_transferencia|floatformat:2 }}
+        ({{ venta.banco|default:'banco no indicado' }}, comprobante {{ venta.comprobante|default:'—' }}){% endif %}
+</p>
+
+<table>
+    <tr><th>Producto</th><th>Cantidad</th><th>Precio unitario</th><th>Subtotal</th></tr>
+    {% for d in venta.detalles.all %}
+    <tr>
+        <td>{{ d.producto.codigo }} — {{ d.producto.nombre }}</td>
+        <td>{{ d.cantidad }}</td>
+        <td>${{ d.precio_unitario|floatformat:2 }}</td>
+        <td class="verde">${{ d.subtotal|floatformat:2 }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<div class="total-venta">
+    <div class="desglose-venta">
+        <div class="fila-desglose"><span>Subtotal</span><span>${{ venta.subtotal|floatformat:2 }}</span></div>
+        <div class="fila-desglose"><span>IVA ({{ venta.iva_porcentaje|floatformat:'-2' }}%)</span><span>${{ venta.iva|floatformat:2 }}</span></div>
+        <div class="fila-desglose fila-total"><span>TOTAL</span><span class="stat-num">${{ venta.total|floatformat:2 }}</span></div>
+    </div>
+    <a href="{% url 'nueva_venta' %}" class="btn btn-primario"><i class="bi bi-cart-plus"></i> Nueva venta</a>
+    <a href="{% url 'factura_pdf' venta.pk %}" class="btn" title="Descargar factura en PDF"><i class="bi bi-file-earmark-pdf"></i> Factura PDF</a>
+    <a href="{% url 'historial_ventas' %}" class="btn">Ver historial</a>
+</div>
+{% endblock %}

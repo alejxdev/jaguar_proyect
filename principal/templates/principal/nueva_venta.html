@@ -1,0 +1,153 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+{% block titulo %}Nueva venta — Jaguar{% endblock %}
+{% block nav_ventas %}activo{% endblock %}
+
+{% block contenido %}
+<h1><i class="bi bi-cart-plus"></i> Registrar nueva venta</h1>
+<p class="subtexto">Punto de venta: busca productos, armar el carrito y confirma. El stock se descuenta automáticamente.</p>
+
+{{ productos_json|json_script:"datos-productos" }}
+<script id="datos-config" type="application/json">{ "iva": {{ iva_porcentaje|floatformat:'-2' }} }</script>
+
+<form method="post" id="form-venta">
+    {% csrf_token %}
+    <input type="hidden" name="cliente" id="campo-cliente" value="Consumidor final">
+    <div id="contenedor-items"></div>
+
+    <div class="pos-layout">
+
+        <div class="pos-principal">
+
+            <!-- 1. Cliente -->
+            <section class="panel-seccion">
+                <div class="seccion-cabecera">
+                    <h2><i class="bi bi-person"></i> Cliente</h2>
+                    <span class="chip-cliente" id="chip-cliente"><i class="bi bi-person"></i> Consumidor final</span>
+                </div>
+                <div class="selector-cliente">
+                    <button type="button" id="modo-final" class="segmento activo">
+                        <i class="bi bi-person"></i> Consumidor final
+                    </button>
+                    <button type="button" id="modo-registrado" class="segmento">
+                        <i class="bi bi-person-check"></i> Cliente registrado
+                    </button>
+                </div>
+                <input type="search" id="buscar-cliente" class="campo-busqueda" hidden
+                       placeholder="Buscar cliente por nombre o cédula..." autocomplete="off">
+                <ul id="resultados-cliente" class="lista-sugerencias" hidden></ul>
+            </section>
+
+            <!-- 2. Buscador + vista previa -->
+            <section class="panel-seccion">
+                <div class="seccion-cabecera">
+                    <h2><i class="bi bi-upc-scan"></i> Agregar productos</h2>
+                </div>
+                <div class="zona-producto">
+                    <div class="columna-busqueda">
+                        <input type="search" id="buscar-producto" class="campo-busqueda"
+                               placeholder="Escanea o busca por código o nombre..." autocomplete="off">
+                        <ul id="sugerencias" class="lista-sugerencias" hidden></ul>
+                        <p class="pista"><i class="bi bi-lightning-charge"></i> Enter con un código exacto agrega directo al carrito.</p>
+
+                        <aside class="vista-previa" id="vista-previa">
+                            <div class="previa-img" id="pv-imagen"><i class="bi bi-box"></i></div>
+                            <div class="previa-info">
+                                <span class="previa-nombre" id="pv-nombre">Sin producto seleccionado</span>
+                                <span class="previa-meta" id="pv-meta">Busca y selecciona un producto</span>
+                                <div class="previa-pie">
+                                    <span class="previa-precio" id="pv-precio">—</span>
+                                    <span class="badge-neutro" id="pv-stock">Stock: —</span>
+                                </div>
+                                <span class="pista">Ajusta cantidades en la orden de venta.</span>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Orden de venta -->
+            <section class="panel-seccion">
+                <div class="seccion-cabecera">
+                    <h2><i class="bi bi-basket2"></i> Orden de venta</h2>
+                    <button type="button" id="limpiar" class="btn btn-mini"><i class="bi bi-eraser"></i> Limpiar</button>
+                </div>
+                <table id="tabla-carrito">
+                    <thead>
+                        <tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th></th></tr>
+                    </thead>
+                    <tbody id="cuerpo-carrito"></tbody>
+                </table>
+                <p class="carrito-vacio" id="carrito-vacio">
+                    <i class="bi bi-basket"></i> El carrito está vacío. Busca y agrega productos.
+                </p>
+            </section>
+
+            <!-- 3b. Pago -->
+            <section class="panel-seccion">
+                <div class="seccion-cabecera">
+                    <h2><i class="bi bi-cash-coin"></i> Pago</h2>
+                    <span class="badge-neutro" id="estado-pago">Sin cobrar</span>
+                </div>
+                <div class="pago-grid">
+                    <label>Monto en efectivo
+                        <input type="number" id="pago-efectivo" min="0" step="0.01"
+                               inputmode="decimal" placeholder="0.00">
+                    </label>
+                    <label>Monto transferido
+                        <input type="number" id="pago-transferencia" min="0" step="0.01"
+                               inputmode="decimal" placeholder="0.00">
+                    </label>
+                </div>
+                <div class="pago-grid" id="datos-transferencia" hidden>
+                    <label>Banco
+                        <input type="text" id="pago-banco" list="bancos-ec"
+                               placeholder="Nombre del banco...">
+                        <datalist id="bancos-ec">
+                            <option value="Banco Pichincha"></option>
+                            <option value="Banco Guayaquil"></option>
+                            <option value="Banco Pacífico"></option>
+                            <option value="Produbanco"></option>
+                            <option value="Banco Internacional"></option>
+                            <option value="Banco Bolivariano"></option>
+                            <option value="Banco Machala"></option>
+                            <option value="Banco de Loja"></option>
+                            <option value="Cooperativa JEP"></option>
+                            <option value="Cooperativa 29 de Octubre"></option>
+                        </datalist>
+                    </label>
+                    <label>Número de comprobante
+                        <input type="text" id="pago-comprobante"
+                               placeholder="Ej: 0012345678">
+                    </label>
+                </div>
+            </section>
+        </div>
+
+        <!-- 4. Resumen -->
+        <aside class="resumen-pos">
+            <h2><i class="bi bi-receipt"></i> Resumen</h2>
+            <dl class="filas-resumen">
+                <div><dt>Cliente</dt><dd id="res-cliente">Consumidor final</dd></div>
+                <div><dt>Artículos</dt><dd id="res-articulos">0</dd></div>
+                <div><dt>Subtotal</dt><dd id="res-subtotal">$0.00</dd></div>
+                <div><dt>IVA ({{ iva_porcentaje|floatformat:'-2' }}%)</dt><dd id="res-iva">$0.00</dd></div>
+            </dl>
+            <div class="total-pos">
+                <span>TOTAL</span>
+                <strong id="total">$0.00</strong>
+            </div>
+            <button type="submit" class="btn btn-primario btn-confirmar-pos" id="confirmar" disabled>
+                <i class="bi bi-check2-circle"></i> Confirmar venta
+            </button>
+            <button type="button" class="btn btn-cancelar-pos" id="cancelar">
+                <i class="bi bi-x-lg"></i> Cancelar venta
+            </button>
+        </aside>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'principal/venta.js' %}"></script>
+{% endblock %}

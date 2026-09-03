@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Sistema de Ventas e Inventarios{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'principal/jaguar.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'principal/estilos.css' %}?v=16">
+</head>
+<body>
+    <header class="barra">
+        <a href="{% url 'panel' %}" class="logo" title="Jaguar"><img src="{% static 'principal/jaguar.png' %}" alt="Jaguar" class="logo-img"></a>
+        <nav>
+            <a href="{% url 'panel' %}" class="{% block nav_panel %}{% endblock %}"><i class="bi bi-speedometer2"></i> Panel</a>
+            <a href="{% url 'nueva_venta' %}" class="{% block nav_ventas %}{% endblock %}"><i class="bi bi-cart-plus"></i> Nueva venta</a>
+            <div class="menu-desplegable">
+                <button type="button" class="nav-desplegable {% block nav_productos %}{% endblock %}">
+                    <i class="bi bi-boxes"></i> Productos <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="menu-contenido">
+                    <a href="{% url 'lista_productos' %}"><i class="bi bi-box"></i> Catálogo de productos</a>
+                    <a href="{% url 'registrar_cruce' %}"><i class="bi bi-arrow-left-right"></i> Cruces / Traslados</a>
+                </div>
+            </div>
+            <a href="{% url 'kardex' %}" class="{% block nav_kardex %}{% endblock %}"><i class="bi bi-journal-text"></i> Kardex</a>
+            {% if es_dueno %}
+            <a href="{% url 'historial_ventas' %}" class="{% block nav_historial %}{% endblock %}"><i class="bi bi-receipt"></i> Historial</a>
+            {% endif %}
+            <a href="{% url 'caja' %}" class="{% block nav_caja %}{% endblock %}"><i class="bi bi-cash-stack"></i> Caja</a>
+            {% if es_dueno %}
+            <a href="{% url 'configuracion' %}" class="{% block nav_config %}{% endblock %}"><i class="bi bi-sliders"></i> Configuración</a>
+            {% endif %}
+            {% if user.is_superuser %}
+            <a href="/admin/" target="_blank"><i class="bi bi-gear"></i> Admin</a>
+            {% endif %}
+        </nav>
+        <div class="usuario-zona">
+            <span class="usuario-nombre"><i class="bi bi-person-circle"></i> {{ user.username }}</span>
+            <form method="post" action="{% url 'logout' %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-mini" title="Cerrar sesión">
+                    <i class="bi bi-box-arrow-right"></i> Salir
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <main class="contenedor">
+        {% if messages %}
+            {% for mensaje in messages %}
+                <div class="alerta {{ mensaje.tags }}">{{ mensaje }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% block contenido %}{% endblock %}
+    </main>
+
+    <footer class="pie">Python + Django + SQLite3 — Sistema de Ventas e Inventarios</footer>
+
+    <script src="{% static 'principal/scripts.js' %}?v=2"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% extends 'principal/base.html' %}
+{% block titulo %}Cruce / Traslado — Jaguar{% endblock %}
+{% block nav_productos %}activo{% endblock %}
+
+{% block contenido %}
+<h1><i class="bi bi-arrow-left-right"></i> Cruce / Traslado de mercancía</h1>
+<p class="subtexto">Mueve stock entre sucursales: se registra la SALIDA en el origen
+    y la ENTRADA en el destino. El stock total no cambia.</p>
+
+{% if not hay_sucursales %}
+<div class="alerta error">
+    Primero registra al menos dos sucursales en
+    <a href="/admin/principal/sucursal/">Admin → Sucursales</a>.
+</div>
+{% endif %}
+
+<form method="post" class="formulario">
+    {% csrf_token %}
+    {% if formulario.errors %}
+        <div class="alerta error">Revisa los campos marcados en rojo.</div>
+    {% endif %}
+
+    <div class="campos">
+        <label>{{ formulario.producto.label }}
+            {{ formulario.producto }} {{ formulario.producto.errors }}
+        </label>
+        <label>{{ formulario.sucursal_origen.label }}
+            {{ formulario.sucursal_origen }} {{ formulario.sucursal_origen.errors }}
+        </label>
+        <label>{{ formulario.sucursal_destino.label }}
+            {{ formulario.sucursal_destino }} {{ formulario.sucursal_destino.errors }}
+        </label>
+        <label>{{ formulario.cantidad.label }}
+            {{ formulario.cantidad }} {{ formulario.cantidad.errors }}
+        </label>
+    </div>
+
+    <div class="acciones-form">
+        <button type="submit" class="btn btn-primario"><i class="bi bi-arrow-left-right"></i> Registrar cruce</button>
+        <a href="{% url 'kardex' %}" class="btn"><i class="bi bi-journal-text"></i> Ver kardex</a>
+    </div>
+</form>
+{% endblock %}

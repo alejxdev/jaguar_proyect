@@ -1,0 +1,22 @@
+{% extends 'principal/base.html' %}
+{% block titulo %}Historial de ventas — Jaguar{% endblock %}
+{% block nav_historial %}activo{% endblock %}
+
+{% block contenido %}
+<h1><i class="bi bi-receipt"></i> Historial de ventas</h1>
+
+<table>
+    <tr><th>Venta</th><th>Cliente</th><th>Fecha</th><th>Artículos</th><th>Total</th></tr>
+    {% for v in ventas %}
+    <tr>
+        <td><a href="{% url 'detalle_venta' v.id %}">#{{ v.id }}</a></td>
+        <td>{{ v.cliente }}</td>
+        <td>{{ v.fecha|date:'d/m/Y H:i' }}</td>
+        <td>{{ v.detalles.all|length }}</td>
+        <td class="verde">${{ v.total|floatformat:2 }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="vacio">Todavía no hay ventas registradas.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

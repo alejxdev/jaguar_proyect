@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Web con Django</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'principal/estilos.css' %}">
+</head>
+<body>
+    <div class="tarjeta">
+        <h1>¡Mi primera web con Django!</h1>
+        <p>Servidor funcionando correctamente con Python y Django + SQLite3.</p>
+
+        {% if productos %}
+        <h2 style="font-size:1.2rem; margin-top:2rem;"><i class="bi bi-box-seam"></i> Productos (desde la base de datos)</h2>
+        <table>
+            <tr><th>Producto</th><th>Precio</th></tr>
+            {% for p in productos %}
+            <tr>
+                <td>{{ p.nombre }}</td>
+                <td class="precio">${{ p.precio }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <p style="margin-top:1rem; font-size:0.85rem;">Total de registros: {{ productos|length }}</p>
+        {% else %}
+        <p>No hay productos en la base de datos.</p>
+        {% endif %}
+
+        <span class="etiqueta">SQLite3 conectado <i class="bi bi-check2"></i></span>
+    </div>
+
+    <script src="{% static 'principal/scripts.js' %}"></script>
+</body>
+</html>

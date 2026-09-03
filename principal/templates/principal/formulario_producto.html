@@ -1,0 +1,162 @@
+{% extends 'principal/base.html' %}
+{% block titulo %}{{ titulo }} — Jaguar{% endblock %}
+{% block nav_productos %}activo{% endblock %}
+
+{% block contenido %}
+<h1>{{ titulo }}</h1>
+
+<form method="post" enctype="multipart/form-data" class="formulario">
+    {% csrf_token %}
+    {% if formulario.errors %}
+        <div class="alerta error">Revisa los campos marcados en rojo.</div>
+    {% endif %}
+
+    <div class="campos">
+        <label>{{ formulario.codigo.label }}
+            {{ formulario.codigo }} {{ formulario.codigo.errors }}
+        </label>
+        <label>{{ formulario.nombre.label }}
+            {{ formulario.nombre }} {{ formulario.nombre.errors }}
+        </label>
+        <label>{{ formulario.categoria.label }}
+            {{ formulario.categoria }} {{ formulario.categoria.errors }}
+        </label>
+        <div class="campo-imagen">
+            <span class="etiqueta-campo">{{ formulario.imagen.label }}</span>
+            <div class="zona-imagen {% if formulario.instance.imagen %}con-imagen{% else %}vacio{% endif %}"
+                 id="zona-imagen" role="button" tabindex="0"
+                 aria-label="Arrastra una imagen aquí o haz clic para seleccionarla">
+                <div class="zona-vacia">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <span>Arrastra la imagen aquí<br>o haz clic para buscarla</span>
+                </div>
+                <img class="zona-vista" id="zona-vista" alt=""
+                     {% if formulario.instance.imagen %}src="{{ formulario.instance.imagen.url }}" data-actual="{{ formulario.instance.imagen.url }}"{% endif %}>
+                <div class="zona-acciones">
+                    <button type="button" class="btn btn-mini" id="btn-cambiar">
+                        <i class="bi bi-arrow-repeat"></i> Cambiar
+                    </button>
+                    <button type="button" class="btn btn-mini btn-peligro" id="btn-quitar">
+                        <i class="bi bi-trash"></i> Quitar
+                    </button>
+                </div>
+            </div>
+            <span class="zona-archivo" id="zona-archivo"></span>
+            {{ formulario.imagen }} {{ formulario.imagen.errors }}
+        </div>
+        <label>{{ formulario.precio_compra.label }}
+            {{ formulario.precio_compra }} {{ formulario.precio_compra.errors }}
+        </label>
+        <label>{{ formulario.precio_venta.label }}
+            {{ formulario.precio_venta }} {{ formulario.precio_venta.errors }}
+        </label>
+        <label>{{ formulario.stock.label }}
+            {{ formulario.stock }} {{ formulario.stock.errors }}
+        </label>
+        <label>{{ formulario.stock_minimo.label }}
+            {{ formulario.stock_minimo }} {{ formulario.stock_minimo.errors }}
+        </label>
+    </div>
+
+    <div class="acciones-form">
+        <button type="submit" class="btn btn-primario"><i class="bi bi-save"></i> Guardar</button>
+        <a href="{% url 'lista_productos' %}" class="btn"><i class="bi bi-arrow-return-left"></i> Cancelar</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+    const entrada = document.getElementById('id_imagen');
+    const zona = document.getElementById('zona-imagen');
+    const vista = document.getElementById('zona-vista');
+    const nombre = document.getElementById('zona-archivo');
+    const cambiar = document.getElementById('btn-cambiar');
+    const quitar = document.getElementById('btn-quitar');
+    if (!entrada || !zona || !vista || !nombre) return;
+
+    const casillaLimpiar = () => document.querySelector('input[name="imagen-clear"]');
+
+    const mostrarVacio = () => {
+        zona.classList.add('vacio');
+        zona.classList.remove('con-imagen');
+        vista.removeAttribute('src');
+        vista.alt = '';
+        entrada.value = '';
+        nombre.textContent = '';
+        nombre.classList.remove('visible');
+    };
+
+    const mostrarArchivo = (archivo) => {
+        vista.src = URL.createObjectURL(archivo);
+        vista.alt = archivo.name;
+        zona.classList.remove('vacio');
+        zona.classList.add('con-imagen');
+        nombre.textContent = archivo.name;
+        nombre.classList.add('visible');
+        const casilla = casillaLimpiar();
+        if (casilla) casilla.checked = false;
+    };
+
+    const procesar = (lista) => {
+        const archivo = lista && lista[0];
+        if (!archivo) return;
+        if (!archivo.type.startsWith('image/')) {
+            entrada.value = '';
+            nombre.textContent = `"${archivo.name}" no es una imagen`;
+            nombre.classList.add('visible');
+            return;
+        }
+        try {
+            entrada.files = lista;
+        } catch {
+            const dt = new DataTransfer();
+            dt.items.add(archivo);
+            entrada.files = dt.files;
+        }
+        mostrarArchivo(archivo);
+    };
+
+    entrada.addEventListener('change', () => procesar(entrada.files));
+
+    zona.addEventListener('click', (evento) => {
+        if (evento.target.closest('.zona-acciones')) return;
+        entrada.click();
+    });
+    zona.addEventListener('keydown', (evento) => {
+        if (evento.key === 'Enter' || evento.key === ' ') {
+            evento.preventDefault();
+            entrada.click();
+        }
+    });
+
+    cambiar.addEventListener('click', () => entrada.click());
+    quitar.addEventListener('click', () => {
+        const habiaNueva = entrada.files.length > 0;
+        const casilla = casillaLimpiar();
+        if (casilla) casilla.checked = !habiaNueva;
+        mostrarVacio();
+    });
+
+    zona.addEventListener('dragover', (evento) => {
+        evento.preventDefault();
+        evento.dataTransfer.dropEffect = 'copy';
+        zona.classList.add('arrastre');
+    });
+    zona.addEventListener('dragleave', () => zona.classList.remove('arrastre'));
+    zona.addEventListener('drop', (evento) => {
+        evento.preventDefault();
+        zona.classList.remove('arrastre');
+        procesar(evento.dataTransfer.files);
+    });
+
+    ['dragover', 'drop'].forEach((tipo) => {
+        window.addEventListener(tipo, (evento) => {
+            if (zona.contains(evento.target)) return;
+            evento.preventDefault();
+        });
+    });
+})();
+</script>
+{% endblock %}

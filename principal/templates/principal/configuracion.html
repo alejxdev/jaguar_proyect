@@ -1,0 +1,80 @@
+{% extends 'principal/base.html' %}
+{% block titulo %}Configuración — Jaguar{% endblock %}
+{% block nav_config %}activo{% endblock %}
+
+{% block contenido %}
+<h1><i class="bi bi-sliders"></i> Configuración</h1>
+<p class="subtexto">Parámetros del sistema, del IVA y de los datos que se imprimen en las facturas.</p>
+
+<form method="post" class="formulario">
+    {% csrf_token %}
+    {% if formulario.errors %}
+        <div class="alerta error">
+            Revisa los campos marcados en rojo: {{ formulario.errors }}
+        </div>
+    {% endif %}
+
+    <section class="panel-seccion">
+        <h2><i class="bi bi-percent"></i> Impuestos</h2>
+        <div class="campos">
+            <label>{{ formulario.iva_porcentaje.label }}
+                {{ formulario.iva_porcentaje }} {{ formulario.iva_porcentaje.errors }}
+                <small class="pista">{{ formulario.iva_porcentaje.help_text }}</small>
+            </label>
+        </div>
+    </section>
+
+    <section class="panel-seccion">
+        <h2><i class="bi bi-building"></i> Datos del emisor (aparecen en la factura)</h2>
+        <div class="campos">
+            <label>{{ formulario.nombre_empresa.label }}
+                {{ formulario.nombre_empresa }} {{ formulario.nombre_empresa.errors }}
+            </label>
+            <label>{{ formulario.ruc.label }}
+                {{ formulario.ruc }} {{ formulario.ruc.errors }}
+            </label>
+            <label>{{ formulario.direccion.label }}
+                {{ formulario.direccion }} {{ formulario.direccion.errors }}
+            </label>
+            <label>{{ formulario.telefono.label }}
+                {{ formulario.telefono }} {{ formulario.telefono.errors }}
+            </label>
+            <label>{{ formulario.correo.label }}
+                {{ formulario.correo }} {{ formulario.correo.errors }}
+            </label>
+            <label>{{ formulario.lema.label }}
+                {{ formulario.lema }} {{ formulario.lema.errors }}
+            </label>
+        </div>
+    </section>
+
+    <section class="panel-seccion">
+        <h2><i class="bi bi-hash"></i> Numeración de la factura</h2>
+        <p class="pista">La factura se numera como <strong>establecimiento - punto de emisión - secuencial</strong>
+            (ej. <strong>001-001-000000001</strong>). El secuencial se genera automáticamente desde cada venta.</p>
+        <div class="campos">
+            <label>{{ formulario.establecimiento.label }}
+                {{ formulario.establecimiento }} {{ formulario.establecimiento.errors }}
+                <small class="pista">{{ formulario.establecimiento.help_text }}</small>
+            </label>
+            <label>{{ formulario.punto_emision.label }}
+                {{ formulario.punto_emision }} {{ formulario.punto_emision.errors }}
+                <small class="pista">{{ formulario.punto_emision.help_text }}</small>
+            </label>
+        </div>
+    </section>
+
+    <div class="acciones-form">
+        <button type="submit" class="btn btn-primario"><i class="bi bi-save"></i> Guardar</button>
+        <a href="{% url 'panel' %}" class="btn"><i class="bi bi-arrow-return-left"></i> Cancelar</a>
+    </div>
+</form>
+
+<div class="panel-seccion">
+    <h2><i class="bi bi-file-earmark-pdf"></i> Vista previa de la numeración</h2>
+    <p class="pista">El próximo consecutivo se verá así (usando el id de la última venta + 1):</p>
+    {% with siguiente=proximo_secuencial %}
+    <p class="stat-num verde">{{ siguiente }}</p>
+    {% endwith %}
+</div>
+{% endblock %}
