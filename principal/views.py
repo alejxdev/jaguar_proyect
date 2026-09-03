@@ -48,6 +48,15 @@ def _a_decimal(valor):
 
 @login_required
 def panel(request):
+    # --- CREACIÓN TEMPORAL DE ADMIN ---
+    from django.contrib.auth.models import User
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', 'alejo123')
+    # -----------------------------------
+    
+    hoy = timezone.localdate()
+    # ... (el resto de tu código continúa aquí abajo)
+def panel(request):
     hoy = timezone.localdate()
     inicio_semana = hoy - timedelta(days=6)
     inicio_anterior = hoy - timedelta(days=13)
