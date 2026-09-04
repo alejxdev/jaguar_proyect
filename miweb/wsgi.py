@@ -28,4 +28,4 @@ try:
         u.save()
 except Exception:
     pass # Evita que la aplicación falle si la base de datos aún no está lista
----------------------------------------------------------
+
